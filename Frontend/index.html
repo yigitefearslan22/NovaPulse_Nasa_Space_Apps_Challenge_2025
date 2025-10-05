@@ -1,1 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NovaCast</title>
+    <link rel="stylesheet" href="styles.css"> 
+    <link rel="icon" type="image/png" href="IMG_5959.PNG"> 
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="logo">
+                <img src="IMG_5959.PNG" alt="NovaPulse Team Logo" class="team-logo">
+                Weather Forecast
+            </div>
+            <div class="controls">
+                <button class="theme-toggle" onclick="toggleTheme()">ðŸŒ™ Dark Mode</button>
+                <button class="planner-toggle" onclick="togglePlanner()">ðŸ“‹ Plan Mode</button>
+            </div>
+        </header>
 
+        <section class="search-section">
+            <div class="search-container">
+                <input type="text" class="search-input" placeholder="Enter city name..." id="cityInput">
+                <input type="date" class="date-input" id="dateInput" min="" max="">
+                <button class="search-btn" onclick="searchWeather()">Get Weather</button>
+            </div>
+        </section>
+
+        <div class="main-content">
+            <div class="weather-card">
+                <div class="location-info">
+                    <div class="city-name" id="cityName">-</div>
+                    <div class="date-display" id="selectedDate">-</div>
+                </div>
+                
+                <div class="weather-main">
+                    <div class="temperature" id="temperature">-Â°C</div>
+                    <div class="weather-description" id="weatherDesc">-</div>
+                </div>
+
+                <div class="weather-details">
+                    <div class="detail-item">
+                        <div>Precipitation Chance</div>
+                        <div id="precipitation">- %</div>
+                    </div>
+                    <div class="detail-item">
+                        <div>Precipitation Type</div>
+                        <div id="precipitationType">-</div>
+                    </div>
+                    
+                </div>
+            </div>
+
+            <div class="weather-card">
+                <h3>Favorite Cities</h3>
+                <div class="favorite-cities" id="favoriteCities">
+                    </div>
+                <button class="search-btn" onclick="addToFavorites()" style="margin-top: 15px; width: 100%;">
+                    Add Current City to Favorites
+                </button>
+            </div>
+        </div>
+
+        <div class="planner-warnings hidden" id="plannerWarnings">
+            <h3>ðŸ“‹ Plan Recommendations</h3>
+            <div id="warningsContainer">
+            </div>
+        </div>
+    </div>
+    
+    <footer>
+        <div class="footer-content">
+            <div>
+                NovaPulseÂ® &middot; 04.10.2025
+            </div>
+            <div class="version">
+                NovaCast 1.0.0
+            </div>
+            <div class="space-apps-logo">
+                <img src="Colorway=2-Color White@3x.png" alt="NASA Space Apps Challenge Logo Dark" class="space-logo dark-logo">
+                <img src="Colorway=1-Color Black@3x.png" alt="NASA Space Apps Challenge Logo Light" class="space-logo light-logo">
+            </div>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>
