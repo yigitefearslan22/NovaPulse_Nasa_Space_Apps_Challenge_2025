@@ -13,6 +13,7 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 function isoLocalDate(d = new Date()) {
+  // GÃ¼venli ISO: YYYY-MM-DD
   return d.toLocaleDateString('en-CA');
 }
 
@@ -34,14 +35,14 @@ function applyInitialTheme() {
   document.body.classList.toggle('light-mode', !isDark);
 
   const themeToggle = document.querySelector('.theme-toggle');
-  if (themeToggle) themeToggle.textContent = isDark ? '☀ Light Mode' : '🌙 Dark Mode';
+  if (themeToggle) themeToggle.textContent = isDark ? 'â˜€ Light Mode' : 'ðŸŒ™ Dark Mode';
 
   const isPlanner = localStorage.getItem('plannerMode') === 'true';
   document.body.classList.toggle('planner-mode', isPlanner);
   const warningsDiv = document.getElementById('plannerWarnings');
   if (warningsDiv) warningsDiv.classList.toggle('hidden', !isPlanner);
   const plannerToggle = document.querySelector('.planner-toggle');
-  if (plannerToggle) plannerToggle.textContent = isPlanner ? '✅ Planner ON' : '📋 Planner Mode';
+  if (plannerToggle) plannerToggle.textContent = isPlanner ? 'âœ… Planner ON' : 'ðŸ“‹ Planner Mode';
 
   document.body.classList.toggle('image-background', localStorage.getItem('backgroundType') === 'image');
 }
@@ -72,6 +73,28 @@ async function getCoordinates(city) {
     throw new Error(`Geocoding Error: ${message}`);
   }
 }
+function determinePrecipitationType(forecast) {
+    const mm = Number(forecast.yagis_mm ?? 0);
+    const p = Number(forecast.yagis_iht ?? 0);
+    const tmax = Number(forecast.tmax ?? 0);
+
+    if (p < 30 || mm < 0.1) {
+        return 'None'; 
+    }
+
+    if (tmax <= 2) {
+        return 'Snow'; 
+    }
+    if (tmax <= 6) {
+        return 'Mixed'; 
+    }
+    
+    if (p >= 70) {
+        return 'Rain'; 
+    } else {
+        return 'None'; 
+    }
+}
 async function searchWeather() {
   const city = document.getElementById('cityInput').value.trim();
   const selectedDateInput = document.getElementById('dateInput').value; 
@@ -90,6 +113,7 @@ async function searchWeather() {
     }
 
     const todayISO = isoLocalDate(new Date());
+
     const leadDays = Math.ceil(
       (new Date(selectedISO + 'T00:00:00') - new Date(todayISO + 'T00:00:00')) / (24 * 3600 * 1000)
     );
@@ -99,7 +123,7 @@ async function searchWeather() {
     const requestData = {
       lat: location.lat,
       lon: location.lon,
-      target_date: selectedISO.replace(/-/g, ''), 
+      target_date: selectedISO.replace(/-/g, ''),
       horizon_days: horizon
     };
 
@@ -134,7 +158,7 @@ async function searchWeather() {
       document.getElementById('cityName').textContent = city;
       updateWeatherCard(
     { tmax: '...' },
-    `Selected date is out of range. Valid range: ${first || '?'} – ${last || '?'}`
+    `Selected date is out of range. Valid range: ${first || '?'} â€“ ${last || '?'}`
 );
     }
 
@@ -156,15 +180,14 @@ function updateUI(city, isoDate, forecast) {
 
 function updateWeatherCard(forecast, customDesc = null) {
   if (forecast.tmax === '...' || forecast.tmax === undefined) {
-    document.getElementById('temperature').textContent = '...°C';
+    document.getElementById('temperature').textContent = '...Â°C';
     document.getElementById('weatherDesc').textContent = customDesc || 'Loading...';
     document.getElementById('precipitation').textContent = '- %';
     document.getElementById('precipitationType').textContent = '-';
-    document.getElementById('windSpeed').textContent = '- km/h';
     return;
   }
 
- const temp = (forecast.tmax !== 'Error') ? `${Math.round(forecast.tmax)}°C` : 'ERROR';
+ const temp = (forecast.tmax !== 'Error') ? `${Math.round(forecast.tmax)}Â°C` : 'ERROR';
   document.getElementById('temperature').textContent = temp;
 
   const weatherDescElement = document.getElementById('weatherDesc');
@@ -174,42 +197,23 @@ function updateWeatherCard(forecast, customDesc = null) {
   let desc = customDesc || getWeatherDescription(forecast);
   weatherDescElement.textContent = desc;
 
-  if (forecast.tmax_source && forecast.tmax_source.toUpperCase().includes('BLEND')) {
-    const badge = document.createElement('span');
-    badge.className = 'data-source-badge nasa-badge';
-    badge.textContent = ' Climatology Blend';
-    badge.title = 'Forecast is primarily based on climatology and long-term trend blend.';
-    weatherDescElement.appendChild(badge);
-  } else if (forecast.tmax_source && forecast.tmax_source.toUpperCase().includes('OPEN-METEO')) {
-    const badge = document.createElement('span');
-    badge.className = 'data-source-badge nwp-badge';
-    badge.textContent = ' Meteorological Forecast';
-    badge.title = 'Real-time forecast from numerical weather prediction models.';
-    weatherDescElement.appendChild(badge);
-  }
+  
 
- document.getElementById('precipitation').textContent = `${forecast.yagis_iht ?? '-'}%`;
-  document.getElementById('precipitationType').textContent = '-';
-  document.getElementById('windSpeed').textContent = '- km/h';
+  document.getElementById('precipitation').textContent = `${forecast.yagis_iht ?? '-'}%`;
+  const precipitationType = determinePrecipitationType(forecast);
+Â  document.getElementById('precipitationType').textContent = precipitationType; 
+  
 }
 
 function getWeatherDescription(forecast) {
-  if (forecast.tmax === 'Error') return 'Data or API Connection Error.';
-  let desc = `Max: ${Math.round(forecast.tmax)}°C. `;
-  const p = Number(forecast.yagis_iht ?? 0);
-
-  if (p >= 60) desc += `High chance of precipitation expected (${p}%). ☔`;
-  else if (p >= 30) desc += `Some chance of precipitation possible (${p}%).`;
-  else desc += 'Generally clear/sunny weather. ☀';
-
-  return desc;
+    return '';
 }
 
 function toggleTheme() {
   const isLight = document.body.classList.toggle('light-mode');
   localStorage.setItem('theme', isLight ? 'light' : 'dark');
   const themeToggle = document.querySelector('.theme-toggle');
-  if (themeToggle) themeToggle.textContent = isLight ? '🌙 Dark Mode' : '☀ Light Mode';
+  if (themeToggle) themeToggle.textContent = isLight ? 'ðŸŒ™ Dark Mode' : 'â˜€ Light Mode';
 }
 
 function togglePlanner() {
@@ -218,7 +222,7 @@ function togglePlanner() {
   warnings.classList.toggle('hidden', !isPlanner);
   localStorage.setItem('plannerMode', isPlanner);
   const plannerToggle = document.querySelector('.planner-toggle');
-  if (plannerToggle) plannerToggle.textContent = isPlanner ? '✅ Planner ON' : '📋 Planner Mode';
+  if (plannerToggle) plannerToggle.textContent = isPlanner ? 'âœ… Planner ON' : 'ðŸ“‹ Planner Mode';
 
   if (isPlanner && currentForecastData) {
     const selectedISO = document.getElementById('dateInput').value || isoLocalDate();
@@ -233,7 +237,7 @@ function toggleBackgroundType() {
   const isImageBg = document.body.classList.toggle('image-background');
   localStorage.setItem('backgroundType', isImageBg ? 'image' : 'color');
   const backgroundToggle = document.querySelector('.background-toggle');
-  if (backgroundToggle) backgroundToggle.textContent = isImageBg ? '🎨 Background Color' : '🖼 Background Images';
+  if (backgroundToggle) backgroundToggle.textContent = isImageBg ? 'ðŸŽ¨ Background Color' : 'ðŸ–¼ Background Images';
 }
 
 function loadFavorites() {
@@ -251,7 +255,7 @@ function loadFavorites() {
     cityDiv.className = 'favorite-item';
     cityDiv.innerHTML = `
       <span onclick="selectFavorite('${city}')">${city}</span>
-      <button onclick="removeFavorite('${city}')" class="remove-btn">×</button>
+      <button onclick="removeFavorite('${city}')" class="remove-btn">Ã—</button>
     `;
     container.appendChild(cityDiv);
   });
@@ -290,6 +294,7 @@ function updatePlannerWarnings(forecast) {
   const container = document.getElementById('warningsContainer');
   container.innerHTML = '';
   const warnings = [];
+  const currentPrecipType = determinePrecipitationType(forecast); 
 
   if (Number(forecast.tmax) >= 25) {
     warnings.push({ text: "Sunscreen and light clothing recommended (High Temperature).", level: 'success' });
@@ -297,9 +302,11 @@ function updatePlannerWarnings(forecast) {
 
   const p = Number(forecast.yagis_iht ?? 0);
   if (p >= 80) {
-    warnings.push({ text: "High chance of heavy precipitation! Bring an umbrella. ☔", level: 'danger' });
-  } else if (p < 30) {
-    warnings.push({ text: "Perfect day for outdoor activities! No precipitation expected. ☀", level: 'success' });
+    warnings.push({ text: "High chance of heavy precipitation! Bring an umbrella. â˜”", level: 'danger' });}
+    else if (currentPrecipType === 'Kar' || currentPrecipType === 'KarÄ±ÅŸÄ±k') {
+         warnings.push({ text: "KÄ±ÅŸ lastikleri ve sÄ±cak giysiler gerekli. Yol durumu kontrol edilmeli.", level: 'warning' });
+    }else if (p < 30) {
+    warnings.push({ text: "Perfect day for outdoor activities! No precipitation expected. â˜€", level: 'success' });
   }
 
   if (warnings.length === 0) {
